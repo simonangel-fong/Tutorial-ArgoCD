@@ -15,6 +15,7 @@
   - [Lab: 1st](#lab-1st)
     - [Add Repo](#add-repo)
     - [Create ArgoCD Application](#create-argocd-application)
+    - [Update, branch, and merge](#update-branch-and-merge)
 
 ---
 
@@ -286,7 +287,10 @@ kubectl get secrets -n argocd
 mkdir argo_cd
 cd argo_cd
 
-tee nginx.yaml<<EOF
+vi web.yaml
+```
+
+```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -296,7 +300,7 @@ spec:
   project: default
 
   source:
-    repoURL: 'https://github.com/simonangel-fong/Tutorial-ArgoCD.git'
+    repoURL: "https://github.com/simonangel-fong/Tutorial-ArgoCD.git"
     targetRevision: main # branch
     path: manifests
 
@@ -309,9 +313,31 @@ spec:
     automated:
       prune: true
       selfHeal: true
+```
 
-EOF
+```sh
+# create application
+kubectl apply -f web.yaml
 
-kubectl apply -f nginx.yaml
+```
 
+- Confirm
+
+![pic](./pic/app01.png)
+![pic](./pic/app02.png)
+
+---
+
+### Update, branch, and merge
+
+
+```sh
+git checkout -b feature/increase-
+# Switched to a new branch 'feature/increase-replic
+
+# update manifest
+vi manifest/deployment.yaml
+# replicas: 6
+
+git commit -m "increate replicas count"
 ```
