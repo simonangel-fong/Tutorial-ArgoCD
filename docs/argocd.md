@@ -21,7 +21,7 @@
     - [Deploy Argocd Application Manually](#deploy-argocd-application-manually)
     - [Update, Branch, and Merge](#update-branch-and-merge)
     - [Delete Application](#delete-application)
-  - [Lab: Create](#lab-create)
+  - [Lab: Create ArgoCD Application with Helm](#lab-create-argocd-application-with-helm)
 
 ---
 
@@ -489,7 +489,7 @@ argocd app list
 
 ---
 
-## Lab: Create
+## Lab: Create ArgoCD Application with Helm
 
 ```sh
 # repo
@@ -522,7 +522,7 @@ EOF
 
 git checkout -b feature/argocd-helm-httpbin
 # Switched to a new branch 'feature/argocd-helm-httpbin'
-git add argo-cd/argocd_helm.yaml
+git add .
 git commit -m "argocd: add httpbin helm chart"
 git push
 ```
