@@ -5,6 +5,7 @@
 - [ArgoCD](#argocd)
   - [ArgoCD](#argocd-1)
     - [Architecture Components](#architecture-components)
+    - [Imperative Command](#imperative-command)
   - [Installation](#installation)
     - [Install with Helm](#install-with-helm)
     - [Enable Ingress access](#enable-ingress-access)
@@ -14,8 +15,9 @@
     - [Update new pwd](#update-new-pwd)
   - [Lab](#lab)
     - [Add Repo](#add-repo)
-  - [Lab: Manually Create ArgoCD Application with K8s Manifest](#lab-manually-create-argocd-application-with-k8s-manifest)
+  - [Lab: Manually Create ArgoCD Application](#lab-manually-create-argocd-application)
     - [Create k8s Manifest](#create-k8s-manifest)
+    - [Create Argocd Application Manifest](#create-argocd-application-manifest)
     - [Deploy Argocd Application Manually](#deploy-argocd-application-manually)
     - [Update, Branch, and Merge](#update-branch-and-merge)
     - [Delete Application](#delete-application)
@@ -46,6 +48,31 @@
 - `prometheus+Grafana`
   - not built-in components, install separately
   - responsible to **monitor** the health and performance of the k8s cluster, **collect the metrics** from ArgoCD and k8s，and provide a UI for querying the performance data.
+
+---
+
+### Imperative Command
+
+- Repo management
+
+| CMD                                                           | DESC                                                  |
+| ------------------------------------------------------------- | ----------------------------------------------------- |
+| `argocd repo add REPO_URL --username UNAME --password SECRET` | Add git repo                                          |
+| `argocd repo add REPO_URL --type helm --name stable`          | Add a public Helm repository named 'stable' via HTTPS |
+| `argocd repo get REPO_URL`                                    | Get a configured repository by URL                    |
+| `argocd repo list`                                            | List all repositories                                 |
+| `argocd repo rm REPO_URL`                                     | Remove configured repositories                        |
+
+- App management
+
+| CMD                                                                                                                                                    | DESC                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------- |
+| `argocd app list`                                                                                                                                      | List applications                       |
+| `argocd app create APPNAME --repo REPO_URL --path PATH --dest-namespace NS --dest-server https://kubernetes.default.svc --directory-recurse`           | Create an application from a dir        |
+| `argocd app create APPNAME --repo REPO_URL --path PATH --dest-namespace NS --dest-server https://kubernetes.default.svc --helm-set KEY=VALUE`          | Create an application from a helm dir   |
+| `argocd app create APPNAME --repo REPO_URL --helm-chart HELM --revision VERSION --dest-namespace default --dest-server https://kubernetes.default.svc` | Create a Helm app from a Helm repo      |
+| `argocd app delete APPNAME`                                                                                                                            | Delete an application                   |
+| `argocd app sync APPNAME`                                                                                                                              | Sync an application to its target state |
 
 ---
 
@@ -284,7 +311,7 @@ kubectl get secrets -n argocd
 
 ---
 
-## Lab: Manually Create ArgoCD Application with K8s Manifest
+## Lab: Manually Create ArgoCD Application
 
 ### Create k8s Manifest
 
@@ -333,20 +360,21 @@ spec:
 EOF
 
 git add .
-git commit -m "add manifests"
+git commit -m "add k8s manifests"
 git push
 
 ```
 
----
-
-### Deploy Argocd Application Manually
+### Create Argocd Application Manifest
 
 ```sh
 # ##############################
 # Create argocd application
 # ##############################
-tee ~/argocd_app.yaml<<EOF
+# repo/
+mkdir argocd
+
+tee argocd/argocd_manifest.yaml<<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -371,8 +399,47 @@ spec:
       selfHeal: true
 EOF
 
+git add .
+git commit -m "add argocd manifests"
+git push
+
+```
+
+---
+
+### Deploy Argocd Application Manually
+
+```sh
+# ##############################
+# Create argocd application
+# ##############################
+tee ./argocd_app.yaml<<EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-app
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: "https://github.com/simonangel-fong/Tutorial-ArgoCD.git"
+    targetRevision: main # branch
+    path: argocd
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  # Sync policy
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+EOF
+
 # create application manually
-kubectl apply -f ~/argocd_app.yaml
+kubectl apply -f ./argocd_app.yaml
 # application.argoproj.io/nginx created
 
 argocd app list
