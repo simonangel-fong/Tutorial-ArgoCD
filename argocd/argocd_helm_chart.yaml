@@ -10,7 +10,7 @@ spec:
     helm:
       releaseName: httpd
     chart: httpd
-    repoURL: https://github.com/simonangel-fong/Tutorial-ArgoCD
+    repoURL: https://simonangel-fong.github.io/Tutorial-ArgoCD
     targetRevision: 0.1.0
 
   destination:

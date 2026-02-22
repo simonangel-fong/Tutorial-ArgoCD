@@ -635,4 +635,40 @@ EOF
 git add .
 git commit -m "argocd: add helm chart"
 git push
+
+argocd app sync argocd-app
+# TIMESTAMP                  GROUP              KIND    NAMESPACE                  NAME    STATUS   HEALTH        HOOK  MESSAGE
+# 2026-02-22T15:49:47-05:00  argoproj.io  Application      argocd               httpbin    Synced   
+# 2026-02-22T15:49:47-05:00  argoproj.io  Application      argocd                 nginx    Synced   
+# 2026-02-22T15:49:49-05:00  argoproj.io  Application      argocd                 nginx    Synced                       application.argoproj.io/nginx unchanged
+# 2026-02-22T15:49:49-05:00  argoproj.io  Application      argocd                 httpd   Running   Synced              application.argoproj.io/httpd created
+# 2026-02-22T15:49:49-05:00  argoproj.io  Application      argocd               httpbin    Synced                       application.argoproj.io/httpbin unchanged
+# 2026-02-22T15:49:50-05:00  argoproj.io  Application      argocd                 httpd  OutOfSync   Synced              application.argoproj.io/httpd created
+
+# Name:               argocd/argocd-app
+# Project:            default
+# Server:             https://kubernetes.default.svc
+# Namespace:          default
+# URL:                https://argocd.example.com/applications/argocd-app
+# Source:
+# - Repo:             https://github.com/simonangel-fong/Tutorial-ArgoCD.git
+#   Target:           main
+#   Path:             argocd
+# SyncWindow:         Sync Allowed
+# Sync Policy:        Automated (Prune)
+# Sync Status:        Synced to main (fc5ddd5)
+# Health Status:      Healthy
+
+# Operation:          Sync
+# Sync Revision:      fc5ddd5c08aeb841b0699ec0143b37476c559c30
+# Phase:              Succeeded
+# Start:              2026-02-22 15:49:47 -0500 EST
+# Finished:           2026-02-22 15:49:49 -0500 EST
+# Duration:           2s
+# Message:            successfully synced (all tasks run)
+
+# GROUP        KIND         NAMESPACE  NAME     STATUS  HEALTH  HOOK  MESSAGE
+# argoproj.io  Application  argocd     httpd    Synced                application.argoproj.io/httpd created
+# argoproj.io  Application  argocd     httpbin  Synced                application.argoproj.io/httpbin unchanged
+# argoproj.io  Application  argocd     nginx    Synced                application.argoproj.io/nginx unchanged
 ```
