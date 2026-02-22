@@ -589,38 +589,37 @@ vi values.yaml
 # package charts
 helm package .
 # Successfully packaged chart and saved it to: helm/httpd/httpd-0.1.0.tgz
+```
 
+- Enable GitHub page as Helm repo
+  - go to github, enable page: https://simonangel-fong.github.io/Tutorial-ArgoCD
+
+```sh
 # index helm chart to enable github repo as remote helm repo
-helm repo index helm/httpd --url https://github.com/simonangel-fong/Tutorial-ArgoCD/helm/httpd
+helm repo index helm/httpd --url https://simonangel-fong.github.io/Tutorial-ArgoCD/helm/httpd/
 
 mv helm/httpd/index.yaml ./index.yaml
-
-
-helm repo add test https://simonangel-fong.github.io/Tutorial-ArgoCD
 ```
 
 - Create argicd manifest to create application with created helm chart
 
 ```sh
 # repo
-tee argo-cd/argocd_helm.yaml<<EOF
+tee argo-cd/argocd_helm_chart.yaml<<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: httpbin
+  name: httpd
   namespace: argocd
 spec:
   project: default
 
   source:
     helm:
-      releaseName: httpbin
-      values: |
-        service:
-          type: NodePort
-    chart: httpbin
-    repoURL: "https://matheusfm.dev/charts"
-    targetRevision: 0.1.1
+      releaseName: httpd
+    chart: httpd
+    repoURL: https://github.com/simonangel-fong/Tutorial-ArgoCD
+    targetRevision: 0.1.0
 
   destination:
     server: https://kubernetes.default.svc
@@ -632,4 +631,8 @@ spec:
       prune: true
       selfHeal: true
 EOF
+
+git add .
+git commit -m "argocd: add helm chart"
+git push
 ```

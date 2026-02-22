@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: httpd
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    helm:
+      releaseName: httpd
+    chart: httpd
+    repoURL: https://github.com/simonangel-fong/Tutorial-ArgoCD
+    targetRevision: 0.1.0
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  # Sync policy
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
