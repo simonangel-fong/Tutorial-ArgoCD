@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: caddy-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: caddy
+  template:
+    metadata:
+      labels:
+        app: caddy
+    spec:
+      volumes:
+      - name: caddy-config
+        configMap:
+          name: caddy-config
+      containers:
+      - name: caddy
+        image: caddy:alpine 
+        ports:
+        - name: http
+          containerPort: 80
+        volumeMounts:
+        - name: caddy-config
+          mountPath: /etc/caddy
+          readOnly: true
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10 
+          periodSeconds: 10 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: caddy-service
+spec:
+  selector:
+    app: caddy
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: caddy-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: caddy.service
+    http: 
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: caddy-service
+            port:
+              name: http

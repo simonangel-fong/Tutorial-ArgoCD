@@ -23,6 +23,9 @@
     - [Delete Application](#delete-application)
   - [Lab: Create ArgoCD Application with remote Helm](#lab-create-argocd-application-with-remote-helm)
   - [Lab: Create ArgoCD Application with Local Helm](#lab-create-argocd-application-with-local-helm)
+  - [Lab: Deploy ArgoCD Application with Kustomize](#lab-deploy-argocd-application-with-kustomize)
+    - [Create Kustomize](#create-kustomize)
+    - [Create ArgoCD Application](#create-argocd-application)
 
 ---
 
@@ -638,8 +641,8 @@ git push
 
 argocd app sync argocd-app
 # TIMESTAMP                  GROUP              KIND    NAMESPACE                  NAME    STATUS   HEALTH        HOOK  MESSAGE
-# 2026-02-22T15:49:47-05:00  argoproj.io  Application      argocd               httpbin    Synced   
-# 2026-02-22T15:49:47-05:00  argoproj.io  Application      argocd                 nginx    Synced   
+# 2026-02-22T15:49:47-05:00  argoproj.io  Application      argocd               httpbin    Synced
+# 2026-02-22T15:49:47-05:00  argoproj.io  Application      argocd                 nginx    Synced
 # 2026-02-22T15:49:49-05:00  argoproj.io  Application      argocd                 nginx    Synced                       application.argoproj.io/nginx unchanged
 # 2026-02-22T15:49:49-05:00  argoproj.io  Application      argocd                 httpd   Running   Synced              application.argoproj.io/httpd created
 # 2026-02-22T15:49:49-05:00  argoproj.io  Application      argocd               httpbin    Synced                       application.argoproj.io/httpbin unchanged
@@ -671,4 +674,192 @@ argocd app sync argocd-app
 # argoproj.io  Application  argocd     httpd    Synced                application.argoproj.io/httpd created
 # argoproj.io  Application  argocd     httpbin  Synced                application.argoproj.io/httpbin unchanged
 # argoproj.io  Application  argocd     nginx    Synced                application.argoproj.io/nginx unchanged
+
+# confirm
+k get po | grep httpd
+# httpd-678ccf5485-88mcl     1/1     Running   0          79s
+```
+
+![pic](./pic/helm_httpd.png)
+
+---
+
+## Lab: Deploy ArgoCD Application with Kustomize
+
+### Create Kustomize
+
+```sh
+mkdir -pv kustomize/base
+cd kustomize/base
+
+# ##############################
+# define base/
+# ##############################
+
+tee caddy.yaml<<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: caddy-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: caddy
+  template:
+    metadata:
+      labels:
+        app: caddy
+    spec:
+      volumes:
+      - name: caddy-config
+        configMap:
+          name: caddy-config
+      containers:
+      - name: caddy
+        image: caddy:alpine
+        ports:
+        - name: http
+          containerPort: 80
+        volumeMounts:
+        - name: caddy-config
+          mountPath: /etc/caddy
+          readOnly: true
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: caddy-service
+spec:
+  selector:
+    app: caddy
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: caddy-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: caddy.service
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: caddy-service
+            port:
+              name: http
+EOF
+
+tee Caddyfile<<EOF
+:80
+log {
+    output stdout
+    format json
+}
+root * /usr/share/caddy
+file_server
+EOF
+
+tee kustomization.yaml<<EOF
+resources:
+- ../base
+
+patches:
+- path: ingress.yaml
+  target:
+    kind: Ingress
+    name: caddy-ingress
+EOF
+
+# ##############################
+# define overlays/
+# ##############################
+mkdir -pv kustomize/overlays
+cd kustomize/overlays
+
+tee ingress.yaml<<EOF
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: caddy-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /caddy
+        pathType: Prefix
+        backend:
+          service:
+            name: caddy-service
+            port:
+              name: http
+EOF
+
+tee kustomization.yaml<<EOF
+resources:
+- ../base
+
+patches:
+- path: ingress.yaml
+  target:
+    kind: Ingress
+    name: caddy-ingress
+EOF
+
+```
+
+---
+
+### Create ArgoCD Application
+
+```sh
+cd argocd
+
+tee argocd_kustomize.yaml<<EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: caddy
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: "https://github.com/simonangel-fong/Tutorial-ArgoCD.git"
+    targetRevision: main # branch
+    path: kustomize/overlays
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  # Sync policy
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+EOF
 ```
