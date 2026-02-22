@@ -440,7 +440,7 @@ EOF
 
 # create application manually
 kubectl apply -f ./argocd_app.yaml
-# application.argoproj.io/nginx created
+# application.argoproj.io/argocd-app created
 
 argocd app list
 # NAME          CLUSTER                         NAMESPACE  PROJECT  STATUS  HEALTH   SYNCPOLICY  CONDITIONS  REPO                                                    PATH       TARGET
