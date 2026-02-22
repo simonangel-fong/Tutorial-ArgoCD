@@ -12,10 +12,14 @@
     - [Installation](#installation-1)
     - [login](#login)
     - [Update new pwd](#update-new-pwd)
-  - [Lab: 1st](#lab-1st)
+  - [Lab](#lab)
     - [Add Repo](#add-repo)
-    - [Create ArgoCD Application](#create-argocd-application)
-    - [Update, branch, and merge](#update-branch-and-merge)
+  - [Lab: Manually Create ArgoCD Application with K8s Manifest](#lab-manually-create-argocd-application-with-k8s-manifest)
+    - [Create k8s Manifest](#create-k8s-manifest)
+    - [Deploy Argocd Application Manually](#deploy-argocd-application-manually)
+    - [Update, Branch, and Merge](#update-branch-and-merge)
+    - [Delete Application](#delete-application)
+  - [Lab: Create](#lab-create)
 
 ---
 
@@ -116,8 +120,8 @@ kubectl port-forward -n argocd svc/argocd-server 8080:443 --address 0.0.0.0
   - username: admin
   - pwd: decoded pwd
 
-![01](1st_login01.png)
-![01](1st_login02.png)
+![01](./pic/1st_login01.png)
+![01](./pic/1st_login02.png)
 
 ---
 
@@ -253,7 +257,7 @@ argocd account update-password --current-password old_pwd --new-password "new_pw
 
 ---
 
-## Lab: 1st
+## Lab
 
 ### Add Repo
 
@@ -280,17 +284,69 @@ kubectl get secrets -n argocd
 
 ---
 
-### Create ArgoCD Application
+## Lab: Manually Create ArgoCD Application with K8s Manifest
+
+### Create k8s Manifest
 
 ```sh
-# create dir dedicated to argocd manifest
-mkdir argo_cd
-cd argo_cd
+# repo/
+mkdir manifests
 
-vi web.yaml
+# ##############################
+# Create k8s manifest
+# ##############################
+tee manifests/web.yaml<<EOF
+# web.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: web
+  name: web
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: web
+  name: web
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: web
+EOF
+
+git add .
+git commit -m "add manifests"
+git push
+
 ```
 
-```yaml
+---
+
+### Deploy Argocd Application Manually
+
+```sh
+# ##############################
+# Create argocd application
+# ##############################
+tee ~/argocd_app.yaml<<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -313,12 +369,15 @@ spec:
     automated:
       prune: true
       selfHeal: true
-```
+EOF
 
-```sh
-# create application
-kubectl apply -f web.yaml
+# create application manually
+kubectl apply -f ~/argocd_app.yaml
+# application.argoproj.io/nginx created
 
+argocd app list
+# NAME          CLUSTER                         NAMESPACE  PROJECT  STATUS  HEALTH   SYNCPOLICY  CONDITIONS  REPO                                                    PATH       TARGET
+# argocd/nginx  https://kubernetes.default.svc  default    default  Synced  Healthy  Auto-Prune  <none>      https://github.com/simonangel-fong/Tutorial-ArgoCD.git  manifests  main
 ```
 
 - Confirm
@@ -328,8 +387,7 @@ kubectl apply -f web.yaml
 
 ---
 
-### Update, branch, and merge
-
+### Update, Branch, and Merge
 
 ```sh
 git checkout -b feature/increase-
@@ -340,4 +398,64 @@ vi manifest/deployment.yaml
 # replicas: 6
 
 git commit -m "increate replicas count"
+git push --set-upstream origin feature/increase-replicas
+```
+
+- create pr and merg in github
+- Confirm the application has been updated
+
+![pic](./pic/update01.png)
+
+---
+
+### Delete Application
+
+```sh
+argocd app delete argocd/nginx
+# Are you sure you want to delete 'argocd/nginx' and all its resources? [y/n] y
+# application 'argocd/nginx' deleted
+
+# confirm
+argocd app list
+# NAME  CLUSTER  NAMESPACE  PROJECT  STATUS  HEALTH  SYNCPOLICY  CONDITIONS  REPO  PATH  TARGET
+```
+
+---
+
+## Lab: Create
+
+```sh
+# repo
+tee argo-cd/argocd_helm.yaml<<EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: httpbin
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    helm:
+      releaseName: httpbin
+    chart: httpbin
+    repoURL: "https://matheusfm.dev/charts"
+    targetRevision: 0.1.1
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  # Sync policy
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+EOF
+
+git checkout -b feature/argocd-helm-httpbin
+# Switched to a new branch 'feature/argocd-helm-httpbin'
+git add argo-cd/argocd_helm.yaml
+git commit -m "argocd: add httpbin helm chart"
+git push
 ```
