@@ -19,8 +19,7 @@
     - [Deploy Argocd Application Manually](#deploy-argocd-application-manually)
     - [Update, Branch, and Merge](#update-branch-and-merge)
     - [Delete Application](#delete-application)
-  - [Lab: Manually Create ArgoCD Application with ArgoCD Manifest](#lab-manually-create-argocd-application-with-argocd-manifest)
-  - [GitOps: Auto Deploy](#gitops-auto-deploy)
+  - [Lab: Create](#lab-create)
 
 ---
 
@@ -423,24 +422,25 @@ argocd app list
 
 ---
 
-## Lab: Manually Create ArgoCD Application with ArgoCD Manifest
+## Lab: Create
 
 ```sh
-mkdir argo-cd
-
-tee argo-cd/argocd.yaml<<EOF
+# repo
+tee argo-cd/argocd_helm.yaml<<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argocd
+  name: httpbin
   namespace: argocd
 spec:
   project: default
 
   source:
-    repoURL: "https://github.com/simonangel-fong/Tutorial-ArgoCD.git"
-    targetRevision: main # branch
-    path: manifests
+    helm:
+      releaseName: httpbin
+    chart: httpbin
+    repoURL: "https://matheusfm.dev/charts"
+    targetRevision: 0.1.1
 
   destination:
     server: https://kubernetes.default.svc
@@ -453,46 +453,8 @@ spec:
       selfHeal: true
 EOF
 
-git add .
-git commit -m "add argocd manifest"
-git push
-
-```
-
-## GitOps: Auto Deploy
-
-```sh
-# in repo
-mkdir argocd
-cd argocd
-
-# specify the path for argocd
-tee argocd.yaml<<EOF
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: argocd
-  namespace: argocd
-spec:
-  project: default
-
-  source:
-    repoURL: "https://github.com/simonangel-fong/Tutorial-ArgoCD.git"
-    targetRevision: main # branch
-    path: argocd
-
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: default
-
-  # Sync policy
-  syncPolicy:
-    automated:
-      selfHeal: true
-      prune: true
-EOF
-
-git add .
-git commit -m
+git checkout -b feature/argocd-helm-httpbin
+git add argo-cd/argocd_helm.yaml
+git commit -m ""
 git push
 ```
