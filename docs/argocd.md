@@ -454,7 +454,8 @@ spec:
 EOF
 
 git checkout -b feature/argocd-helm-httpbin
+# Switched to a new branch 'feature/argocd-helm-httpbin'
 git add argo-cd/argocd_helm.yaml
-git commit -m ""
+git commit -m "argocd: add httpbin helm chart"
 git push
 ```
