@@ -9,6 +9,9 @@ spec:
   source:
     helm:
       releaseName: httpbin
+      values: |
+        service:
+          type: NodePort
     chart: httpbin
     repoURL: "https://matheusfm.dev/charts"
     targetRevision: 0.1.1

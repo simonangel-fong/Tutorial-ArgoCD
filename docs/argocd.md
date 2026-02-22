@@ -505,6 +505,9 @@ spec:
   source:
     helm:
       releaseName: httpbin
+      values: |
+        service:
+          type: NodePort
     chart: httpbin
     repoURL: "https://matheusfm.dev/charts"
     targetRevision: 0.1.1
@@ -522,7 +525,41 @@ EOF
 
 git checkout -b feature/argocd-helm-httpbin
 # Switched to a new branch 'feature/argocd-helm-httpbin'
-git add .
+git add argocd/argocd_helm.yaml
 git commit -m "argocd: add httpbin helm chart"
 git push
+
+argocd app sync argocd-app
+# TIMESTAMP                  GROUP              KIND    NAMESPACE                  NAME    STATUS   HEALTH        HOOK  MESSAGE
+# 2026-02-22T14:40:54-05:00  argoproj.io  Application      argocd                 nginx    Synced
+# 2026-02-22T14:42:09-05:00  argoproj.io  Application      argocd               httpbin   Running   Synced              application.argoproj.io/httpbin created
+# 2026-02-22T14:42:09-05:00  argoproj.io  Application      argocd                 nginx    Synced                       application.argoproj.io/nginx unchanged
+
+# Name:               argocd/argocd-app
+# Project:            default
+# Server:             https://kubernetes.default.svc
+# Namespace:          default
+# URL:                https://argocd.example.com/applications/argocd-app
+# Source:
+# - Repo:             https://github.com/simonangel-fong/Tutorial-ArgoCD.git
+#   Target:           main
+#   Path:             argocd
+# SyncWindow:         Sync Allowed
+# Sync Policy:        Automated (Prune)
+# Sync Status:        Synced to main (52d0d60)
+# Health Status:      Healthy
+
+# Operation:          Sync
+# Sync Revision:      52d0d6060d3eb76d02254844235e7f6256c7d301
+# Phase:              Succeeded
+# Start:              2026-02-22 14:40:53 -0500 EST
+# Finished:           2026-02-22 14:42:09 -0500 EST
+# Duration:           1m16s
+# Message:            successfully synced (all tasks run)
+
+# GROUP        KIND         NAMESPACE  NAME     STATUS  HEALTH  HOOK  MESSAGE
+# argoproj.io  Application  argocd     httpbin  Synced                application.argoproj.io/httpbin created
+# argoproj.io  Application  argocd     nginx    Synced                application.argoproj.io/nginx unchanged
 ```
+
+![pic](./pic/helm01.png)
