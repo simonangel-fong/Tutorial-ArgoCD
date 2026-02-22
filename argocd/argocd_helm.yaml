@@ -9,6 +9,7 @@ spec:
   source:
     helm:
       releaseName: httpbin
+      # set values
       values: |
         service:
           type: NodePort

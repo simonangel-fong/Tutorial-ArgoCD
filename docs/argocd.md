@@ -21,7 +21,8 @@
     - [Deploy Argocd Application Manually](#deploy-argocd-application-manually)
     - [Update, Branch, and Merge](#update-branch-and-merge)
     - [Delete Application](#delete-application)
-  - [Lab: Create ArgoCD Application with Helm](#lab-create-argocd-application-with-helm)
+  - [Lab: Create ArgoCD Application with remote Helm](#lab-create-argocd-application-with-remote-helm)
+  - [Lab: Create ArgoCD Application with Local Helm](#lab-create-argocd-application-with-local-helm)
 
 ---
 
@@ -489,7 +490,7 @@ argocd app list
 
 ---
 
-## Lab: Create ArgoCD Application with Helm
+## Lab: Create ArgoCD Application with remote Helm
 
 ```sh
 # repo
@@ -563,3 +564,38 @@ argocd app sync argocd-app
 ```
 
 ![pic](./pic/helm01.png)
+
+---
+
+## Lab: Create ArgoCD Application with Local Helm
+
+- Create helm chart in repo
+
+```sh
+# repo
+mkdir helm
+cd helm
+
+helm create httpd
+# Creating httpd
+
+# update valuse:
+cd httpd
+vi values.yaml
+# image:
+#   repository: httpd
+#   tag: latest
+
+# package charts
+helm package .
+# Successfully packaged chart and saved it to: helm/httpd/httpd-0.1.0.tgz
+
+# index helm chart to enable github repo as remote helm repo
+helm repo index .
+mv ./index.yaml ../..
+
+git add .
+git commit -m "helm: create chart"
+git push
+
+```
