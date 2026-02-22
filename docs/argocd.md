@@ -596,7 +596,7 @@ helm repo index helm/httpd --url https://github.com/simonangel-fong/Tutorial-Arg
 mv helm/httpd/index.yaml ./index.yaml
 
 
-helm repo add test https://github.com/simonangel-fong/Tutorial-ArgoCD.git
+helm repo add test https://simonangel-fong.github.io/Tutorial-ArgoCD
 ```
 
 - Create argicd manifest to create application with created helm chart

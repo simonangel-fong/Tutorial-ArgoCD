@@ -9,6 +9,6 @@ entries:
     name: httpd
     type: application
     urls:
-    - https://github.com/simonangel-fong/Tutorial-ArgoCD/helm/httpd/httpd-0.1.0.tgz
+    - https://simonangel-fong.github.io/Tutorial-ArgoCD/helm/httpd/httpd-0.1.0.tgz
     version: 0.1.0
 generated: "2026-02-22T15:30:01.0025253-05:00"
