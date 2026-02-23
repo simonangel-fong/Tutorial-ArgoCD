@@ -28,6 +28,9 @@
     - [Create ArgoCD Application](#create-argocd-application)
   - [Lab: Manage Secret in ArgoCD with `Sealed Secrets` skip](#lab-manage-secret-in-argocd-with-sealed-secrets-skip)
   - [Lab: Synchronization and Rollback](#lab-synchronization-and-rollback)
+    - [Deploy Stable Version](#deploy-stable-version)
+    - [Deploy Bug Version](#deploy-bug-version)
+    - [Fix](#fix)
 
 ---
 
@@ -934,14 +937,80 @@ kubeseal --version
 - manually sync
 - enable sync
 
+### Deploy Stable Version
+
 - Deploy version01
 
 ![pic](./pic/rollback01.png)
 
+---
+
+### Deploy Bug Version
+
 - Update version02 and deploy, version with issue
 
 ```sh
+# sync
 argocd app sync argocd/argocd-rollback --replace
+
+# show history
+argocd app history argocd/argocd-rollback
+# SOURCE  https://github.com/simonangel-fong/Tutorial-ArgoCD.git
+# ID      DATE                           REVISION
+# 0       2026-02-22 20:49:01 -0500 EST  main (065417b)
+# 1       2026-02-22 20:55:39 -0500 EST  main (74b6d7b)
+# 2       2026-02-22 21:05:23 -0500 EST  main (7564850)
+# 3       2026-02-22 21:06:43 -0500 EST  main (7564850)
+# 4       2026-02-22 21:09:02 -0500 EST  main (2fb4f8c)
+# 5       2026-02-22 21:11:35 -0500 EST  main (e2979fb)
 ```
 
 ![pic](./pic/rollback02.png)
+
+---
+
+### Fix
+
+- Update argocd application
+
+
+```sh
+vi argocd/argocd_rollback.yaml
+# comment out:
+# automated:
+#   prune: true
+#   selfHeal: true
+git log --oneline -3
+# e2979fb (HEAD -> main, origin/main, origin/HEAD) argocd: version02
+# 2fb4f8c argocd: version01
+# 7564850 argocd: version02
+
+git revert 2fb4f8c
+git push
+
+
+
+
+
+
+# Disable Auto-Sync
+argocd app set rollback-lab --sync-policy none
+# {"level":"fatal","msg":"rpc error: code = PermissionDenied desc = permission denied","time":"2026-02-22T21:18:35-05:00"}
+
+# find previous version
+argocd app history argocd/argocd-rollback
+# SOURCE  https://github.com/simonangel-fong/Tutorial-ArgoCD.git
+# ID      DATE                           REVISION
+# 0       2026-02-22 20:49:01 -0500 EST  main (065417b)
+# 1       2026-02-22 20:55:39 -0500 EST  main (74b6d7b)
+# 2       2026-02-22 21:05:23 -0500 EST  main (7564850)
+# 3       2026-02-22 21:06:43 -0500 EST  main (7564850)
+# 4       2026-02-22 21:09:02 -0500 EST  main (2fb4f8c)
+# 5       2026-02-22 21:11:35 -0500 EST  main (e2979fb)
+
+# rollback
+argocd app rollback rollback-lab 4
+
+
+argocd app wait rollback-lab --health --timeout 180
+```
