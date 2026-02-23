@@ -940,4 +940,8 @@ kubeseal --version
 
 - Update version02 and deploy, version with issue
 
+```sh
+argocd app sync argocd/argocd-rollback --replace
+```
+
 ![pic](./pic/rollback02.png)
