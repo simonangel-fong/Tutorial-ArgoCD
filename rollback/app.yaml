@@ -59,7 +59,7 @@ data:
     </head>
     <body style="background-color: #2b6cb0; color: white;">
         <h1>Version 03</h1>
-        <p>This version contains an issue.</p>
+        <p>This version fixs the issue.</p>
     </body>
     </html>
 ---

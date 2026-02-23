@@ -997,4 +997,7 @@ argocd app sync argocd/argocd-rollback --replace
 git add .
 git commit -m "version3: fixed blue version"
 git push
+
+# sync
+argocd app sync argocd/argocd-rollback --replace --grpc-web
 ```
