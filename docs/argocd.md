@@ -981,11 +981,14 @@ vi argocd/argocd_rollback.yaml
 #   prune: true
 #   selfHeal: true
 git log --oneline -3
-# e2979fb (HEAD -> main, origin/main, origin/HEAD) argocd: version02
+# 3f3d839 (HEAD -> main) fix: issue version
+# e2979fb (origin/main, origin/HEAD) argocd: version02
 # 2fb4f8c argocd: version01
-# 7564850 argocd: version02
 
-git revert 2fb4f8c
+git revert e2979fb
+# Auto-merging rollback/app.yaml
+# [main daa20b9] Revert "argocd: version01"
+#  1 file changed, 20 insertions(+)
 git push
 
 
