@@ -32,6 +32,7 @@
     - [Deploy Bug Version](#deploy-bug-version)
     - [HotFix: Revert Git](#hotfix-revert-git)
     - [Fixed: Update k8s app](#fixed-update-k8s-app)
+    - [Observe and Enable Auto-sync](#observe-and-enable-auto-sync)
 
 ---
 
@@ -962,7 +963,6 @@ argocd app sync argocd/argocd-rollback --replace
 
 - Update argocd application
 
-
 ```sh
 
 git log --oneline -3
@@ -999,5 +999,26 @@ git commit -m "version3: fixed blue version"
 git push
 
 # sync
-argocd app sync argocd/argocd-rollback --replace --grpc-web
+argocd app sync argocd/argocd-rollback --replace
+```
+
+![pic](./pic/rollback03.png)
+
+---
+
+### Observe and Enable Auto-sync
+
+```sh
+vi argocd/argocd_rollback.yaml
+# enable:
+# automated:
+#   prune: true
+#   selfHeal: true
+
+git add .
+git commit -m "fix: enable auto sync"
+git push
+
+# sync
+argocd app sync argocd/argocd-rollback --replace
 ```
