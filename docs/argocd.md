@@ -950,19 +950,7 @@ kubeseal --version
 - Update version02 and deploy, version with issue
 
 ```sh
-# sync
 argocd app sync argocd/argocd-rollback --replace
-
-# show history
-argocd app history argocd/argocd-rollback
-# SOURCE  https://github.com/simonangel-fong/Tutorial-ArgoCD.git
-# ID      DATE                           REVISION
-# 0       2026-02-22 20:49:01 -0500 EST  main (065417b)
-# 1       2026-02-22 20:55:39 -0500 EST  main (74b6d7b)
-# 2       2026-02-22 21:05:23 -0500 EST  main (7564850)
-# 3       2026-02-22 21:06:43 -0500 EST  main (7564850)
-# 4       2026-02-22 21:09:02 -0500 EST  main (2fb4f8c)
-# 5       2026-02-22 21:11:35 -0500 EST  main (e2979fb)
 ```
 
 ![pic](./pic/rollback02.png)
@@ -991,29 +979,4 @@ git revert e2979fb
 #  1 file changed, 20 insertions(+)
 git push
 
-
-
-
-
-
-# Disable Auto-Sync
-argocd app set rollback-lab --sync-policy none
-# {"level":"fatal","msg":"rpc error: code = PermissionDenied desc = permission denied","time":"2026-02-22T21:18:35-05:00"}
-
-# find previous version
-argocd app history argocd/argocd-rollback
-# SOURCE  https://github.com/simonangel-fong/Tutorial-ArgoCD.git
-# ID      DATE                           REVISION
-# 0       2026-02-22 20:49:01 -0500 EST  main (065417b)
-# 1       2026-02-22 20:55:39 -0500 EST  main (74b6d7b)
-# 2       2026-02-22 21:05:23 -0500 EST  main (7564850)
-# 3       2026-02-22 21:06:43 -0500 EST  main (7564850)
-# 4       2026-02-22 21:09:02 -0500 EST  main (2fb4f8c)
-# 5       2026-02-22 21:11:35 -0500 EST  main (e2979fb)
-
-# rollback
-argocd app rollback rollback-lab 4
-
-
-argocd app wait rollback-lab --health --timeout 180
 ```
