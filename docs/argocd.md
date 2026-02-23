@@ -26,6 +26,8 @@
   - [Lab: Deploy ArgoCD Application with Kustomize](#lab-deploy-argocd-application-with-kustomize)
     - [Create Kustomize](#create-kustomize)
     - [Create ArgoCD Application](#create-argocd-application)
+  - [Lab: Manage Secret in ArgoCD with `Sealed Secrets` skip](#lab-manage-secret-in-argocd-with-sealed-secrets-skip)
+  - [Lab: Synchronization and Rollback](#lab-synchronization-and-rollback)
 
 ---
 
@@ -862,4 +864,75 @@ spec:
       prune: true
       selfHeal: true
 EOF
+
+git add .
+git commit -m "argocd: update kustomize"
+git push
+
+argocd app sync argocd-app
+
+# confirm
+kubectl get po -l app=caddy
+# NAME                               READY   STATUS    RESTARTS   AGE
+# caddy-deployment-94fd679df-cz7zw   1/1     Running   0          109s
 ```
+
+- test url:
+  - root: http://caddy.service, not working
+  - path: http://caddy.service/caddy, success, kustomize working
+
+![pic](./pic/kustomize01.png)
+![pic](./pic/kustomize02.png)
+![pic](./pic/kustomize_caddy.png)
+
+---
+
+## Lab: Manage Secret in ArgoCD with `Sealed Secrets` skip
+
+- Install `sealed secrets` controller
+  - ref: https://github.com/bitnami-labs/sealed-secrets/releases/tag/v0.35.0
+
+```sh
+kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.35.0/controller.yaml
+# serviceaccount/sealed-secrets-controller created
+# deployment.apps/sealed-secrets-controller created
+# customresourcedefinition.apiextensions.k8s.io/sealedsecrets.bitnami.com created
+# role.rbac.authorization.k8s.io/sealed-secrets-key-admin created
+# clusterrole.rbac.authorization.k8s.io/secrets-unsealer created
+# service/sealed-secrets-controller created
+# rolebinding.rbac.authorization.k8s.io/sealed-secrets-service-proxier created
+# role.rbac.authorization.k8s.io/sealed-secrets-service-proxier created
+# service/sealed-secrets-controller-metrics created
+# rolebinding.rbac.authorization.k8s.io/sealed-secrets-controller created
+# clusterrolebinding.rbac.authorization.k8s.io/sealed-secrets-controller created
+```
+
+- Install CLI
+
+```sh
+curl -OL "https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.35.0/kubeseal-0.35.0-linux-amd64.tar.gz"
+tar -xvzf kubeseal-0.35.0-linux-amd64.tar.gz kubeseal
+sudo install -m 755 kubeseal /usr/local/bin/kubeseal
+
+# confirm
+kubeseal --version
+# kubeseal version: 0.35.0
+```
+
+---
+
+## Lab: Synchronization and Rollback
+
+- create html ver1
+- deploy
+- update html ver2
+- auto deploy
+- find issue
+- dis autosync
+- rollback
+- update html ver3
+- manually sync
+- enable sync
+
+
+
