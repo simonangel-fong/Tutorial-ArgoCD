@@ -30,7 +30,8 @@
   - [Lab: Synchronization and Rollback](#lab-synchronization-and-rollback)
     - [Deploy Stable Version](#deploy-stable-version)
     - [Deploy Bug Version](#deploy-bug-version)
-    - [Fix](#fix)
+    - [HotFix: Revert Git](#hotfix-revert-git)
+    - [Fixed: Update k8s app](#fixed-update-k8s-app)
 
 ---
 
@@ -957,17 +958,13 @@ argocd app sync argocd/argocd-rollback --replace
 
 ---
 
-### Fix
+### HotFix: Revert Git
 
 - Update argocd application
 
 
 ```sh
-vi argocd/argocd_rollback.yaml
-# comment out:
-# automated:
-#   prune: true
-#   selfHeal: true
+
 git log --oneline -3
 # 3f3d839 (HEAD -> main) fix: issue version
 # e2979fb (origin/main, origin/HEAD) argocd: version02
@@ -977,6 +974,27 @@ git revert e2979fb
 # Auto-merging rollback/app.yaml
 # [main daa20b9] Revert "argocd: version01"
 #  1 file changed, 20 insertions(+)
+
+vi argocd/argocd_rollback.yaml
+# comment out:
+# automated:
+#   prune: true
+#   selfHeal: true
+
+git add .
+git commit -m "fix: revert verions01"
 git push
 
+# manually sysn
+argocd app sync argocd/argocd-rollback --replace
+```
+
+---
+
+### Fixed: Update k8s app
+
+```sh
+git add .
+git commit -m "version3: fixed blue version"
+git push
 ```
