@@ -73,8 +73,6 @@ kind: Ingress
 metadata:
   name: rollback-ingress
   namespace: argocd-rollback
-  annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: nginx
   rules:
