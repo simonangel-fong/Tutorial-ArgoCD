@@ -22,6 +22,26 @@ metadata:
 #       <p>This is the stable version.</p>
 #     </body>
 #     </html>
+# ---
+# version02
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rollback-html
+  namespace: argocd-rollback
+data:
+  index.html: |
+    <!doctype html>
+    <html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Rollback Lab</title>
+    </head>
+    <body style="background-color: #c53030; color: white;">
+        <h1>Version 02</h1>
+        <p>This version contains an issue.</p>
+    </body>
+    </html>
 ---
 # version02
 apiVersion: v1
