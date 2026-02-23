@@ -934,5 +934,10 @@ kubeseal --version
 - manually sync
 - enable sync
 
+- Deploy version01
 
+![pic](./pic/rollback01.png)
 
+- Update version02 and deploy, version with issue
+
+![pic](./pic/rollback02.png)
